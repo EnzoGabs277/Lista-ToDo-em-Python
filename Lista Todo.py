@@ -1,51 +1,71 @@
-# -*- coding: utf-8 -*-
-# lista_todo.py
+import os
+
+# Lista de tarefas
 tarefas = []
 
+# --- Funções ---
+def adicionar_tarefa(tarefa):
+    tarefas.append({"tarefa": tarefa, "concluida": False})
+    print(f"Tarefa '{tarefa}' adicionada com sucesso!\n")
 
-
-def mostrar_tarefas():
+def listar_tarefas():
     if not tarefas:
-        print("\nNenhuma tarefa adicionada ainda.")
+        print("Nenhuma tarefa encontrada.\n")
+        return
+    print("\n--- Lista de Tarefas ---")
+    for i, t in enumerate(tarefas, 1):
+        status = "✔️" if t["concluida"] else "❌"
+        print(f"{i}. {t['tarefa']} [{status}]")
+    print()
+
+def concluir_tarefa(indice):
+    if 0 < indice <= len(tarefas):
+        tarefas[indice - 1]["concluida"] = True
+        print(f"Tarefa {indice} concluída!\n")
     else:
-        print("\nLista de Tarefas:")
-        for i, tarefa in enumerate(tarefas, start=1):
-            print(f"{i}. {tarefa}")
+        print("Índice inválido.\n")
 
-def adicionar_tarefa():
-    tarefa = input("\nDigite a nova tarefa: ")
-    tarefas.append(tarefa)
-    print(f"Tarefa '{tarefa}' adicionada com sucesso!")
-
-def remover_tarefa():
-    mostrar_tarefas()
-    try:
-        indice = int(input("\nDigite o número da tarefa que deseja remover: "))
-        tarefa_removida = tarefas.pop(indice - 1)
-        print(f"Tarefa '{tarefa_removida}' removida com sucesso!")
-    except (ValueError, IndexError):
-        print("Número inválido. Tente novamente.")
+def remover_tarefa(indice):
+    if 0 < indice <= len(tarefas):
+        removida = tarefas.pop(indice - 1)
+        print(f"Tarefa '{removida['tarefa']}' removida!\n")
+    else:
+        print("Índice inválido.\n")
 
 def menu():
     while True:
-        print("\n=== LISTA TODO ===")
-        print("1 - Ver tarefas")
-        print("2 - Adicionar tarefa")
-        print("3 - Remover tarefa")
-        print("4 - Sair")
-
-        opcao = input("Escolha uma opção: ")
+        print("=== ToDo List ===")
+        print("1 - Adicionar tarefa")
+        print("2 - Listar tarefas")
+        print("3 - Concluir tarefa")
+        print("4 - Remover tarefa")
+        print("0 - Sair")
+        
+        opcao = input("Escolha: ")
 
         if opcao == "1":
-            mostrar_tarefas()
+            tarefa = input("Digite a tarefa: ")
+            adicionar_tarefa(tarefa)
         elif opcao == "2":
-            adicionar_tarefa()
+            listar_tarefas()
         elif opcao == "3":
-            remover_tarefa()
+            try:
+                indice = int(input("Número da tarefa concluída: "))
+                concluir_tarefa(indice)
+            except ValueError:
+                print("Digite um número válido.\n")
         elif opcao == "4":
-            print("Saindo... Até mais!")
+            try:
+                indice = int(input("Número da tarefa para remover: "))
+                remover_tarefa(indice)
+            except ValueError:
+                print("Digite um número válido.\n")
+        elif opcao == "0":
+            print("Saindo... até mais!")
             break
         else:
-            print("Opção inválida! Tente novamente.")
+            print("Opção inválida.\n")
 
-menu()
+# --- Execução ---
+if __name__ == "__main__":
+    menu()
