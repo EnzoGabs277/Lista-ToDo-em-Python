@@ -57,3 +57,7 @@ AppData/
 Local/
 Temp/
 Cache/
+
+# ====Json de Tarefas====
+tarefas.json
+--- IGNORE --- 
