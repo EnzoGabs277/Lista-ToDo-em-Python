@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 
 # Lista de tarefas
 tarefas = []
@@ -11,25 +12,60 @@ def salvar_tarefas():
 
 def carregar_tarefas():
     global tarefas
-    with open("tarefas.json", "r") as f:
-        tarefas = json.load(f)
-   
+    if os.path.exists("tarefas.json"):
+        with open("tarefas.json", "r") as f:
+            try:
+                tarefas = json.load(f)   
+            except(FileNotFoundError, json.JSONDecodeError):
+                tarefas = []
+    else:
+        tarefas = []
 
 # --- Funções de Gerenciamento de Tarefas ---
    
-def adicionar_tarefa(tarefa):
-    tarefas.append({"tarefa": tarefa, "concluida": False})
+def adicionar_tarefa():
+    tarefa = input("Digite a tarefa: ")
+
+    # 🔹 Validação da prioridade
+    prioridade = ""
+    while prioridade not in ["baixa", "média", "alta"]:
+        prioridade = input("Digite a prioridade (baixa/média/alta): ").lower()
+        if prioridade not in ["baixa", "média", "alta"]:
+            print("❌ Prioridade inválida! Digite apenas: baixa, média ou alta.")
+
+    # 🔹 Validação da data (DD/MM/AAAA)
+    prazo = None
+    while True:
+        entrada = input("Digite o prazo (DD/MM/AAAA) ou pressione Enter para deixar em branco: ")
+        if entrada == "":
+            break
+        try:
+            prazo = datetime.strptime(entrada, "%d/%m/%Y").strftime("%d/%m/%Y")
+            break
+        except ValueError:
+            print("❌ Data inválida! Use o formato DD/MM/AAAA.")
+
+    #Salvando a tarefa
+    tarefas.append({
+        "tarefa": tarefa, 
+        "concluida": False,
+        "prioridade": prioridade,
+        "prazo": prazo if prazo else "Sem prazo"
+    })
     salvar_tarefas()
-    print(f"Tarefa '{tarefa}' adicionada com sucesso!\n")
+    print("✅ Tarefa adicionada com sucesso!")
 
 def listar_tarefas():
     if not tarefas:
         print("Nenhuma tarefa encontrada.\n")
         return
+    
     print("\n--- Lista de Tarefas ---")
     for i, t in enumerate(tarefas, 1):
-        status = " ✔️ " if t["concluida"] else " ❌ "
-        print(f"{i}. {t['tarefa']} [{status}]")
+        status = "✔️ " if t["concluida"] else " ❌ "
+        prioridade = t.get("prioridade", "baixa")
+        prazo = t.get("prazo", "Sem prazo")
+        print(f"{i}. {t['tarefa']} [{status}] | Prioridade: {prioridade} | Prazo: {prazo}")
     print()
 
 def concluir_tarefa(indice):
@@ -60,8 +96,7 @@ def menu():
         opcao = input("Escolha: ")
 
         if opcao == "1":
-            tarefa = input("Digite a tarefa: ")
-            adicionar_tarefa(tarefa)
+            adicionar_tarefa()
             salvar_tarefas()
         elif opcao == "2":
             listar_tarefas()
@@ -81,7 +116,7 @@ def menu():
             except ValueError:
                 print("Digite um número válido.\n")
         elif opcao == "0":
-            print("Saindo... até mais!")
+            print("Saindo!")
             salvar_tarefas()
             break
         else:
