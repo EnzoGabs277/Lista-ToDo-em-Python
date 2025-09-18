@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 from datetime import datetime
 
 # Lista de tarefas
@@ -7,21 +8,15 @@ tarefas = []
 
 # --- Funções de Persistência ---
 def salvar_tarefas():
-    with open("tarefas.json", "w") as f:
-        json.dump(tarefas, f, indent=4)
+    with open("tarefas.json", "w", encoding="utf-8") as f:
+        json.dump(tarefas, f, indent=4, ensure_ascii=False)
 
 def carregar_tarefas():
     global tarefas
     if os.path.exists("tarefas.json"):
-        with open("tarefas.json", "r") as f:
+        with open("tarefas.json", "r", encoding="utf-8") as f:
             try:
                 tarefas = json.load(f)
-                # 🔹 Corrigir tarefas antigas sem prazo ou prioridade
-                for t in tarefas:
-                    if "prazo" not in t:
-                        t["prazo"] = "Sem prazo"
-                    if "prioridade" not in t:
-                        t["prioridade"] = "baixa"
             except (FileNotFoundError, json.JSONDecodeError):
                 tarefas = []
     else:
@@ -42,6 +37,42 @@ def ordenar_tarefas(criterio="prioridade"):
             if t["prazo"] != "Sem prazo" else datetime.max
         )
     return tarefas
+
+def contar_atrasadas():
+    hoje = datetime.now()
+    return sum(
+        1 for t in tarefas
+        if t.get("prazo", "Sem prazo") != "Sem prazo"
+        and not t.get("concluida", False)
+        and datetime.strptime(t["prazo"], "%d/%m/%Y") < hoje
+    )
+
+# --- Funções de Exportação ---
+import csv
+
+def exportar_csv():
+    with open("tarefas.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Tarefa", "Concluída", "Prioridade", "Prazo"])
+        for t in tarefas:
+            writer.writerow([
+                t.get("tarefa", ""),
+                "Sim" if t.get("concluida", False) else "Não",
+                t.get("prioridade", "baixa"),
+                t.get("prazo", "Sem prazo")
+            ])
+    print("✅ Tarefas exportadas para tarefas.csv")
+
+
+def exportar_txt():
+    with open("tarefas.txt", "w", encoding="utf-8") as f:
+        for i, t in enumerate(tarefas, 1):
+            status = "✔️" if t.get("concluida", False) else "❌"
+            prioridade = t.get("prioridade", "baixa")
+            prazo = t.get("prazo", "Sem prazo")
+            f.write(f"{i}. {t.get('tarefa', '')} [{status}] | Prioridade: {prioridade} | Prazo: {prazo}\n")
+    print("✅ Tarefas exportadas para tarefas.txt")
+
 
 # --- Funções de Gerenciamento de Tarefas ---
 def adicionar_tarefa():
@@ -86,7 +117,7 @@ def listar_tarefas(lista=None):
 
     print("\n--- Lista de Tarefas ---")
     for i, t in enumerate(lista, 1):
-        status = "✔️" if t["concluida"] else "❌"
+        status = "✔️ " if t["concluida"] else "❌"
         prioridade = t.get("prioridade", "baixa")
         prazo = t.get("prazo", "Sem prazo")
         print(f"{i}. {t['tarefa']} [{status}] | Prioridade: {prioridade} | Prazo: {prazo}")
@@ -103,31 +134,21 @@ def listar_tarefas_filtradas(filtro="todas"):
     listar_tarefas(filtradas)
 
 def listar_tarefas_atrasadas():
-    if not tarefas:
-        print("Nenhuma tarefa encontrada.\n")
-        return
-    
     hoje = datetime.now()
     atrasadas = []
-
-    for i, t in enumerate(tarefas, 1):
-        prazo = t.get("prazo", "Sem prazo")
-        if prazo != "Sem prazo" and not t["concluida"]:
+    for t in tarefas:
+        if t["prazo"] != "Sem prazo" and not t["concluida"]:
             try:
-                data_prazo = datetime.strptime(prazo, "%d/%m/%Y")
+                data_prazo = datetime.strptime(t["prazo"], "%d/%m/%Y")
                 if data_prazo < hoje:
-                    atrasadas.append((i, t))
+                    atrasadas.append(t)
             except ValueError:
-                pass  # ignora prazos inválidos antigos
-    
-    if not atrasadas:
-        print("Nenhuma tarefa atrasada.\n")
-    else:
+                continue
+    if atrasadas:
         print("\n--- Tarefas Atrasadas ---")
-        for i, t in atrasadas:
-            status = "✔️" if t["concluida"] else "❌"
-            print(f"{i}. {t['tarefa']} [{status}] | Prioridade: {t['prioridade']} | Prazo: {t['prazo']}")
-        print()
+        listar_tarefas(atrasadas)
+    else:
+        print("\nNenhuma tarefa atrasada encontrada.\n")
 
 def concluir_tarefa(indice):
     if 0 < indice <= len(tarefas):
@@ -184,6 +205,8 @@ def menu():
         print("8 - Listar tarefas ordenadas por prioridade")
         print("9 - Listar tarefas ordenadas por prazo")
         print("10 - Listar tarefas atrasadas")
+        print("11 - Exportar tarefas para CSV")
+        print("12 - Exportar tarefas para TXT")
         print("0 - Sair")
         
         opcao = input("Escolha: ")
@@ -220,6 +243,10 @@ def menu():
             listar_tarefas(ordenar_tarefas("prazo"))
         elif opcao == "10":
             listar_tarefas_atrasadas()
+        elif opcao == "11":
+            exportar_csv()
+        elif opcao == "12":
+            exportar_txt()
         elif opcao == "0":
             print("Saindo! Até mais 👋")
             salvar_tarefas()
@@ -230,4 +257,7 @@ def menu():
 # --- Execução ---
 if __name__ == "__main__":
     carregar_tarefas()
+    qtd_atrasadas = contar_atrasadas()
+    if qtd_atrasadas > 0:
+        print(f"⚠️ Você tem {qtd_atrasadas} tarefa(s) atrasada(s)!\n")
     menu()
