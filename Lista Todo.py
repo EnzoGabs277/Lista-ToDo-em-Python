@@ -13,7 +13,7 @@ def carregar_tarefas():
     global tarefas
     with open("tarefas.json", "r") as f:
         tarefas = json.load(f)
-
+   
 
 # --- Funções de Gerenciamento de Tarefas ---
    
