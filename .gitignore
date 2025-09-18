@@ -58,6 +58,8 @@ Local/
 Temp/
 Cache/
 
-# ====Json de Tarefas====
+# ====Escondendo arquivos====
 tarefas.json
+tarefas.csv
+tarefas.txt
 --- IGNORE --- 
