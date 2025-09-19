@@ -1,10 +1,15 @@
 import os
 import json
 import csv
+import requests
 from datetime import datetime
 
 # Lista de tarefas
 tarefas = []
+
+WHATSAPP_PHONE = "5512996599479"  # Seu número no formato internacional
+API_KEY = "2038085"  # Sua chave fornecida pelo CallMeBot
+
 
 # --- Funções de Persistência ---
 def salvar_tarefas():
@@ -21,6 +26,21 @@ def carregar_tarefas():
                 tarefas = []
     else:
         tarefas = []
+
+# --- Função para enviar mensagem pelo WhatsApp ---
+def enviar_whatsapp(mensagem: str):
+    try:
+        url = (
+            f"https://api.callmebot.com/whatsapp.php?"
+            f"phone={WHATSAPP_PHONE}&text={mensagem}&apikey={API_KEY}"
+        )
+        requests.get(url)
+        print("📲 Notificação enviada pelo WhatsApp!")
+    except Exception as e:
+        print(f"❌ Erro ao enviar WhatsApp: {e}")
+
+
+
 
 # --- Funções Auxiliares ---
 def prioridade_valor(prioridade):
@@ -48,8 +68,6 @@ def contar_atrasadas():
     )
 
 # --- Funções de Exportação ---
-import csv
-
 def exportar_csv():
     with open("tarefas.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -63,9 +81,8 @@ def exportar_csv():
             ])
     print("✅ Tarefas exportadas para tarefas.csv")
 
-
 def exportar_txt():
-    with open("tarefas.txt", "w", encoding="utf-8") as f:
+    with open("tarefas.txt", "w", encoding="utf-8-sig") as f:
         for i, t in enumerate(tarefas, 1):
             status = "✔️" if t.get("concluida", False) else "❌"
             prioridade = t.get("prioridade", "baixa")
@@ -73,19 +90,40 @@ def exportar_txt():
             f.write(f"{i}. {t.get('tarefa', '')} [{status}] | Prioridade: {prioridade} | Prazo: {prazo}\n")
     print("✅ Tarefas exportadas para tarefas.txt")
 
+# --- Função Resumo Diário ---
+def resumo_diario():
+    hoje = datetime.now().strftime("%d/%m/%Y")
+    pendentes = [t for t in tarefas if not t["concluida"]]
+    concluidas = [t for t in tarefas if t["concluida"]]
+    atrasadas = [
+        t for t in pendentes
+        if t["prazo"] != "Sem prazo"
+        and datetime.strptime(t["prazo"], "%d/%m/%Y") < datetime.now()
+    ]
+
+    resumo = (
+        f"📅 Resumo Diário - {hoje}\n"
+        f"Total: {len(tarefas)}\n"
+        f"✔️ Concluídas: {len(concluidas)}\n"
+        f"❌ Pendentes: {len(pendentes)}\n"
+        f"⚠️ Atrasadas: {len(atrasadas)}"
+    )
+
+    print("\n" + resumo + "\n")
+    enviar_whatsapp(resumo)
+
+
 
 # --- Funções de Gerenciamento de Tarefas ---
 def adicionar_tarefa():
     tarefa = input("Digite a tarefa: ")
 
-    # 🔹 Validação da prioridade
     prioridade = ""
     while prioridade not in ["baixa", "média", "alta"]:
         prioridade = input("Digite a prioridade (baixa/média/alta): ").lower()
         if prioridade not in ["baixa", "média", "alta"]:
             print("❌ Prioridade inválida! Digite apenas: baixa, média ou alta.")
 
-    # 🔹 Validação da data (DD/MM/AAAA)
     prazo = None
     while True:
         entrada = input("Digite o prazo (DD/MM/AAAA) ou pressione Enter para deixar em branco: ")
@@ -97,7 +135,6 @@ def adicionar_tarefa():
         except ValueError:
             print("❌ Data inválida! Use o formato DD/MM/AAAA.")
 
-    # Salvar a tarefa
     tarefas.append({
         "tarefa": tarefa,
         "concluida": False,
@@ -133,6 +170,7 @@ def listar_tarefas_filtradas(filtro="todas"):
         filtradas.append(t)
     listar_tarefas(filtradas)
 
+
 def listar_tarefas_atrasadas():
     hoje = datetime.now()
     atrasadas = []
@@ -150,6 +188,7 @@ def listar_tarefas_atrasadas():
     else:
         print("\nNenhuma tarefa atrasada encontrada.\n")
 
+
 def concluir_tarefa(indice):
     if 0 < indice <= len(tarefas):
         tarefas[indice - 1]["concluida"] = True
@@ -165,6 +204,7 @@ def remover_tarefa(indice):
         print(f"Tarefa '{removida['tarefa']}' removida!\n")
     else:
         print("Índice inválido.\n")
+
 
 def editar_tarefa(indice):
     if 0 < indice <= len(tarefas):
@@ -190,6 +230,7 @@ def editar_tarefa(indice):
         print("✅ Tarefa editada com sucesso!\n")
     else:
         print("Índice inválido.\n")
+
 
 # --- Menu Principal ---
 def menu():
@@ -254,10 +295,11 @@ def menu():
         else:
             print("Opção inválida.\n")
 
+
+
+
 # --- Execução ---
 if __name__ == "__main__":
     carregar_tarefas()
-    qtd_atrasadas = contar_atrasadas()
-    if qtd_atrasadas > 0:
-        print(f"⚠️ Você tem {qtd_atrasadas} tarefa(s) atrasada(s)!\n")
+    resumo_diario()   # 🔹 Exibe só na abertura
     menu()
