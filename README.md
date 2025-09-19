@@ -28,7 +28,7 @@ O sistema atualmente funciona no **terminal**, mas já possui integração com *
 
 ## 🔧 Tecnologias utilizadas
 - Python 3.x
-- Biblioteca `requests`
+- Biblioteca `requests` `os` `json` `csv`
 - Integração com [CallMeBot API](https://www.callmebot.com/)
 
 ---
@@ -37,3 +37,12 @@ O sistema atualmente funciona no **terminal**, mas já possui integração com *
 1. Clone este repositório:
    ```bash
    git clone https://github.com/EnzoGabs277/Lista-ToDo-em-Python.git
+
+2. Acesse a pasta do projeto:
+   ```bash
+   cd Lista-ToDo-em-Python
+
+2. Acesse a pasta do projeto:
+   ```bash
+   python Lista\ Todo.py
+
