@@ -27,7 +27,6 @@ def carregar_tarefas():
     else:
         tarefas = []
 
-
 # --- Função para enviar mensagem pelo WhatsApp ---
 def enviar_whatsapp(mensagem: str):
     try:
@@ -171,6 +170,7 @@ def listar_tarefas_filtradas(filtro="todas"):
         filtradas.append(t)
     listar_tarefas(filtradas)
 
+
 def listar_tarefas_atrasadas():
     hoje = datetime.now()
     atrasadas = []
@@ -188,6 +188,7 @@ def listar_tarefas_atrasadas():
     else:
         print("\nNenhuma tarefa atrasada encontrada.\n")
 
+
 def concluir_tarefa(indice):
     if 0 < indice <= len(tarefas):
         tarefas[indice - 1]["concluida"] = True
@@ -203,6 +204,7 @@ def remover_tarefa(indice):
         print(f"Tarefa '{removida['tarefa']}' removida!\n")
     else:
         print("Índice inválido.\n")
+
 
 def editar_tarefa(indice):
     if 0 < indice <= len(tarefas):
@@ -228,6 +230,7 @@ def editar_tarefa(indice):
         print("✅ Tarefa editada com sucesso!\n")
     else:
         print("Índice inválido.\n")
+
 
 # --- Menu Principal ---
 def menu():
@@ -291,6 +294,9 @@ def menu():
             break
         else:
             print("Opção inválida.\n")
+
+
+
 
 # --- Execução ---
 if __name__ == "__main__":
