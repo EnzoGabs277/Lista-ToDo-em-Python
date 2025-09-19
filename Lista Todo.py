@@ -1,3 +1,29 @@
+"""
+==================================================
+  Projeto: Lista ToDo em Python
+  Descrição: Sistema simples de gerenciamento de tarefas
+==================================================
+
+📌 Funcionalidades implementadas:
+ - Adicionar tarefas
+ - Listar tarefas (todas, concluídas, pendentes, atrasadas)
+ - Concluir tarefas
+ - Editar tarefas (nome, prioridade e prazo)
+ - Remover tarefas
+ - Ordenar por prioridade e prazo
+ - Exportar tarefas para CSV e TXT
+ - Notificação inteligente via WhatsApp (CallMeBot)
+
+🚀 Futuras implementações:
+ - Interface web com Flask
+ - Banco de dados SQLite (substituir JSON)
+ - Dashboard de produtividade
+ - Usuários com autenticação
+
+Autor: EnzoGabs277
+Data de criação: Setembro/2025
+==================================================
+"""
 import os
 import json
 import csv
@@ -294,9 +320,6 @@ def menu():
             break
         else:
             print("Opção inválida.\n")
-
-
-
 
 # --- Execução ---
 if __name__ == "__main__":
